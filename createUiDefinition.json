@@ -1,0 +1,391 @@
+{
+    "handler": "Microsoft.Compute.MultiVm",
+    "version": "0.0.1-preview",
+    "parameters": {
+        "basics": [
+            {}
+        ],
+        "steps": [
+            {
+                "name": "NetworkConfig",
+                "label": "Network Configuration",
+                "subLabel": {
+                    "preValidation": "Configure the Network settings",
+                    "postValidation": "Done"
+                },
+                "bladeTitle": "Network Configuration",
+                "elements": [
+					{
+					  "name": "VirtualNetwork",
+					  "type": "Microsoft.Network.VirtualNetworkCombo",
+                      "label": {
+                        "virtualNetwork": "VirtualNetwork",
+                        "subnets": "Subnets"
+                      },
+                      "toolTip": {
+                        "virtualNetwork": "Enter a Virtual Network Name",
+                        "subnets": "Enter the Subnet names"
+                      },
+                      "defaultValue": {
+                        "name": "AccessData-Vnet",
+                        "addressPrefixSize": "/16"
+                      },
+					  "constraints": {
+                        "minAddressPrefixSize": "/16"
+                      },
+                      "options": {
+                        "hideExisting": false
+                      },
+                      "subnets": {
+                        "DMZSubnet": {
+                          "label": "Subnet for Jumpbox/incoming clients",
+                          "defaultValue": {
+                            "name": "DMZ-Subnet",
+                            "addressPrefixSize": "/24"
+                          },
+                          "constraints": {
+                            "minAddressPrefixSize": "/24",
+                            "minAddressCount": 12,
+                            "requireContiguousAddresses": true
+                          }
+                        },
+                        "ADSubnet": {
+                          "label": "Active Directory Subnet",
+                          "defaultValue": {
+                            "name": "Directory-Subnet",
+                            "addressPrefixSize": "/24"
+                          },
+                          "constraints": {
+                            "minAddressPrefixSize": "/24",
+                            "minAddressCount": 12,
+                            "requireContiguousAddresses": true
+                          }
+                        },
+                        "InfrastructureSubnet": {
+                          "label": "Infrastructure Subnet",
+                          "defaultValue": {
+                            "name": "Infrastructure-Subnet",
+                            "addressPrefixSize": "/24"
+                          },
+                          "constraints": {
+                            "minAddressPrefixSize": "/24",
+                            "minAddressCount": 12,
+                            "requireContiguousAddresses": true
+                          }
+                        },
+                        "SQLSubnet": {
+                          "label": "SQL Server Subnet",
+                          "defaultValue": {
+                            "name": "SQL-Subnet",
+                            "addressPrefixSize": "/24"
+                          },
+                          "constraints": {
+                            "minAddressPrefixSize": "/24",
+                            "minAddressCount": 12,
+                            "requireContiguousAddresses": true
+                          }
+                        }
+                      },
+                      "visible": true
+                    }
+                ]
+            },
+            {
+                "name": "ActivedirectoryConfig",
+                "label": "Active Directory settings",
+                "subLabel": {
+                    "preValidation": "Configure the Active Directory settings",
+                    "postValidation": "Done"
+                },
+                "bladeTitle": "Active Directory settings",
+                "elements": [
+
+                    {
+                        "name": "ActiveDirectorystorageAccount",
+                        "type": "Microsoft.Storage.StorageAccountSelector",
+                        "label": "Active Directory VM Storage account",
+                        "defaultValue": {
+                            "type": "Standard_LRS"
+                        },
+                        "constraints": {
+                            "allowedTypes": [,
+                                "Standard_LRS"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "vmNamePrefix",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Active Directory Virtual Machine Name prefix",
+                        "toolTip": "Prefix for the virtual machine",
+                        "defaultValue": "",
+                        "constraints": {
+                            "required": true,
+                            "regex": "[a-z][a-z0-9-]{2,5}[a-z0-9]$",
+                            "validationMessage": "Must be 3-5 characters."
+                        }
+                    },
+                    {
+                        "name": "vmSize",
+                        "type": "Microsoft.Compute.SizeSelector",
+                        "label": "Virtual machine size",
+                        "toolTip": "The size of the virtual machine for the domain controller.",
+                        "recommendedSizes": [
+						    "Standard_A1",
+                            "Standard_A3",
+                            "Standard_A4",
+                            "Standard_A5"
+                        ],
+                        "osPlatform": "Windows"
+                    },
+                    {
+                        "name": "ADVMIPAddress",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Active Directory Virtual Machine Private IP Address. If the AD subnet address range is 10.1.0.0/24 then the IP address should be 10.1.0.xxx",
+                        "toolTip": "Prefix for the virtual machine",
+                        "defaultValue": ""
+                    },
+                    {
+                        "name": "DomainName",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Active Directory Domain Name",
+                        "toolTip": "Enter the Domain Name. Example: adlab.local",
+                        "defaultValue": ""
+                    },
+                    {
+                        "name": "OUName",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "AD Container Name",
+                        "toolTip": "Specifies an organizational unit (OU) for the domain account. Example: 'Infrastructure'",
+                        "defaultValue": ""
+                    },
+                    {
+                        "name": "OUPath",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Active Directory OU Path",
+                        "toolTip": "Enter the full distinguished name of the OU. Example: OU=Infrastructure; DC=adlab; DC=local ",
+                        "defaultValue": ""
+                    },
+                    {
+                        "name": "DomainJoinOptions",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Domain Join Options",
+                        "toolTip": "Set of bit flags that define the join options. Default value of 3 is a combination of NETSETUP_JOIN_DOMAIN (0x00000001) & NETSETUP_ACCT_CREATE (0x00000002) i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx",
+                        "defaultValue": "3"
+                    },
+                    {
+                        "name": "adminUserName",
+                        "type": "Microsoft.Compute.UserNameTextBox",
+                        "label": "Domain Administrator User Name",
+                        "osPlatform": "Windows",
+                        "constraints": {
+                            "required": true
+                        },
+                        "toolTip": "Provide admin username for the domain"
+                    },
+                    {
+                        "name": "adminPassword",
+                        "type": "Microsoft.Compute.CredentialsCombo",
+                        "label": {
+                            "password": "Password for Domain Administrator",
+                            "confirmPassword": "Confirm the password you set"
+                        },
+                        "osPlatform": "Windows",
+                        "constraints": {
+                            "customPasswordRegex": "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$",
+                            "customValidationMessage": "The password must contain at least 8 characters",
+                            "required": true
+                        },
+                        "options": {
+                            "hideConfirmation": false
+                        },
+                        "toolTip": {
+                            "password": "Provide a password for the master Admin user for the Domain."
+                        },
+                        "visible": true
+                    }       
+                ]
+            },
+            {
+                "name": "ApplicationConfig",
+                 "label": "Application Settings",
+                 "subLabel": {
+                     "preValidation": "Configure the Application Server settings",
+                     "postValidation": "Done"
+                 },
+                 "bladeTitle": "Application Settings",
+                 "elements": [
+                     {
+                         "name": "JBVMNamePrefix",
+                         "type": "Microsoft.Common.TextBox",
+                         "label": "Jump Box Virtual Machine Name prefix",
+                         "toolTip": "Prefix for the virtual machine",
+                         "defaultValue": "",
+                         "constraints": {
+                             "required": true,
+                             "regex": "[a-z][a-z0-9-]{2,5}[a-z0-9]$",
+                             "validationMessage": "Must be 3-5 characters."
+                         }
+                     },
+                     {
+                         "name": "JBvmSize",
+                         "type": "Microsoft.Compute.SizeSelector",
+                         "label": "Virtual machine size",
+                         "toolTip": "Select the Machine Size.",
+                         "recommendedSizes": [
+						     "Standard_A1",
+                             "Standard_A3",
+                             "Standard_A4",
+                             "Standard_A5"
+                         ],
+                         "osPlatform": "Windows"
+                     },
+                     {
+                         "name": "LabVMNamePrefix",
+                         "type": "Microsoft.Common.TextBox",
+                         "label": "AD Lab Client Virtual Machine Name prefix",
+                         "toolTip": "Prefix for the virtual machine",
+                         "defaultValue": "",
+                         "constraints": {
+                             "required": true,
+                             "regex": "[a-z][a-z0-9-]{2,5}[a-z0-9]$",
+                             "validationMessage": "Must be 3-5 characters."
+                         }
+                     },
+                     {
+                         "name": "LabVmSize",
+                         "type": "Microsoft.Compute.SizeSelector",
+                         "label": "Virtual machine size",
+                         "toolTip": "Select the Machine Size.",
+                         "recommendedSizes": [
+                             "Standard_B2ms",
+							 "Standard_A3",
+                             "Standard_A4",
+                             "Standard_A5"
+                         ],
+                         "osPlatform": "Windows"
+                     },
+                     {
+                         "name": "DPMVMNamePrefix",
+                         "type": "Microsoft.Common.TextBox",
+                         "label": "Processing Manager Virtual Machine Name prefix",
+                         "toolTip": "Prefix for the virtual machine",
+                         "defaultValue": "",
+                         "constraints": {
+                             "required": true,
+                             "regex": "[a-z][a-z0-9-]{2,5}[a-z0-9]$",
+                             "validationMessage": "Must be 3-5 characters."
+                         }
+                     },
+                     {
+                         "name": "DPMVmSize",
+                         "type": "Microsoft.Compute.SizeSelector",
+                         "label": "Virtual machine size",
+                         "toolTip": "Select the Machine Size.",
+                         "recommendedSizes": [
+						     "Standard_D8s_v3",
+                             "Standard_A3",
+                             "Standard_A4",
+                             "Standard_A5"
+                         ],
+                         "osPlatform": "Windows"
+                     },
+                     {
+                         "name": "SQLVMNamePrefix",
+                         "type": "Microsoft.Common.TextBox",
+                         "label": "SQL Server Virtual Machine Name prefix",
+                         "toolTip": "Prefix for the virtual machine",
+                         "defaultValue": "",
+                         "constraints": {
+                             "required": true,
+                             "regex": "[a-z][a-z0-9-]{2,5}[a-z0-9]$",
+                             "validationMessage": "Must be 3-9 characters."
+                         }
+                     },
+                     {
+                         "name": "SQLVmSize",
+                         "type": "Microsoft.Compute.SizeSelector",
+                         "label": "Virtual machine size",
+                         "toolTip": "Select the Machine Size.",
+                         "recommendedSizes": [
+						     "Standard_D16s_v3",
+                             "Standard_A3",
+                             "Standard_A4",
+                             "Standard_A5"
+                         ],
+                         "osPlatform": "Windows"
+                     },
+                     {
+                         "name": "DPEVMSSNamePrefix",
+                         "type": "Microsoft.Common.TextBox",
+                         "label": "Processing Engine(s) Machine Name prefix",
+                         "toolTip": "Prefix for the Distributed Processing Engine(s)",
+                         "defaultValue": "",
+                         "constraints": {
+                             "required": true,
+                             "regex": "[a-z][a-z0-9-]{2,5}[a-z0-9]$",
+                             "validationMessage": "Must be 3-9 characters."
+                         }
+                     },
+                     {
+                         "name": "DPEVmSize",
+                         "type": "Microsoft.Compute.SizeSelector",
+                         "label": "Virtual machine size",
+                         "toolTip": "Select the Virtual Machine Size",
+                         "recommendedSizes": [
+						     "Standard_D16_v3",
+                             "Standard_A3",
+                             "Standard_A4",
+                             "Standard_A5"
+                         ],
+                         "osPlatform": "Windows"
+                     },
+                     {
+                        "name": "DPEVMSSInstanceCount",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Number of engines to place in your scale group",
+                        "toolTip": "Select the number of Scale Members you would like to have initally in your scaling group",
+                        "defaultValue": "2"
+                    }
+                 ]
+             }
+        ],
+        "outputs": {
+            "location": "[location()]",
+            "virtualNetworkName":"[steps('NetworkConfig').VirtualNetwork.name]",
+            "virtualNetworkAddressRange":"[steps('NetworkConfig').VirtualNetwork.addressPrefix]",
+            "DMZ SubnetName":"[steps('NetworkConfig').VirtualNetwork.subnets.DMZSubnet.name]",
+            "DMZ SubnetAddressRange":"[steps('NetworkConfig').VirtualNetwork.subnets.DMZSubnet.addressPrefix]",
+            "AD SubnetName":"[steps('NetworkConfig').VirtualNetwork.subnets.ADSubnet.name]",
+            "AD SubnetAddressRange":"[steps('NetworkConfig').VirtualNetwork.subnets.ADSubnet.addressPrefix]",
+            "InfraSubnetName":"[steps('NetworkConfig').VirtualNetwork.subnets.InfrastructureSubnet.name]",
+            "InfraSubnetAddressRange":"[steps('NetworkConfig').VirtualNetwork.subnets.InfrastructureSubnet.addressPrefix]",
+            "SQL SubnetName":"[steps('NetworkConfig').VirtualNetwork.subnets.SQLSubnet.name]",
+            "SQL SubnetAddressRange":"[steps('NetworkConfig').VirtualNetwork.subnets.SQLSubnet.addressPrefix]",
+            "AD VM Name": "[steps('ActivedirectoryConfig').vmNamePrefix]",
+            "AD VM Size": "[steps('ActivedirectoryConfig').vmSize]",
+            "AD StatiCIP":"[steps('ActivedirectoryConfig').ADVMIPAddress]",
+            "AdminUsername": "[steps('ActivedirectoryConfig').adminUsername]",
+            "AdminPassword": "[steps('ActivedirectoryConfig').adminPassword.password]",
+            "storageAccountNewOrExisting" : "[steps('ActivedirectoryConfig').storageAccount.newOrExisting]",
+            "ADstorageAccountName": "[steps('ActivedirectoryConfig').storageAccount.name]",
+            "storageAccountType": "[steps('ActivedirectoryConfig').storageAccount.type]",
+			"existingStorageAccountRG": "[steps('ActivedirectoryConfig').storageAccount.resourceGroup]",
+            "domainName": "[steps('ActivedirectoryConfig').DomainName]",
+            "ouname": "[steps('ActivedirectoryConfig').OUName]",
+            "ouPath": "[steps('ActivedirectoryConfig').OUPath]",
+            "domainJoinOptions": "[steps('ActivedirectoryConfig').DomainJoinOptions]",
+            "JBVMName":"[steps('ApplicationConfig').JBVMNamePrefix]",
+            "JBVMSize":"[steps('ApplicationConfig').JBvmSize]",
+            "LabVMName":"[steps('ApplicationConfig').LabVMNamePrefix]",
+            "LabVMSize":"[steps('ApplicationConfig').LabVmSize]",
+            "SQLVMName":"[steps('ApplicationConfig').SQLVMNamePrefix]",
+            "SQLVMSize":"[steps('ApplicationConfig').SQLVmSize]",
+            "pDPMVMName":"[steps('ApplicationConfig').DPMVMNamePrefix]",
+            "pDPMVMSize":"[steps('ApplicationConfig').DPMVmSize]",
+            "DPEVMSSName":"[steps('ApplicationConfig').DPEVMSSNamePrefix]",
+            "DPEVMSize":"[steps('ApplicationConfig').DPEVmSize]",
+            "instanceCount":"[steps('ApplicationConfig').DPEVMSSInstanceCount]"
+        }
+    }
+}
